@@ -8,7 +8,7 @@ from langchain.prompts import (
 from langchain.output_parsers import ResponseSchema
 from langchain.output_parsers import StructuredOutputParser
 from langchain.prompts import PromptTemplate, ChatPromptTemplate, HumanMessagePromptTemplate
-from langchain.llms import OpenAI
+from langchain.llms import OpenAI,Cohere
 from langchain.chat_models import ChatOpenAI
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field, validator
@@ -29,6 +29,7 @@ with st.sidebar:
 
 
 # Check if API key is provided and set up the language model accordingly
+mod = ""
 if api_key:
     if model == 'OpenAI':
         os.environ["OPENAI_API_KEY"] = api_key
@@ -42,7 +43,7 @@ if api_key:
         mod = 'Cohere'
 
 
-def quesAns(Topic,Level):
+def quesAns(Topic,Level,NoOfQue):
     # Here's another example, but with a compound typed field.
     class Actor(BaseModel):
     #     name: str = Field(description="name of an actor")
@@ -51,7 +52,7 @@ def quesAns(Topic,Level):
         answer: List[dict] = Field(description="Correct answer and a string of reason behind it of the question")
         
 
-    actor_query = f"Generate the quiz of 20 questions and options and correct answer for the same. Topic is {Topic} and Level is {Level}"
+    actor_query = f"Generate the quiz of {NoOfQue} questions and options and correct answer for the same. Topic is {Topic} and Level is {Level}"
 
     parser = PydanticOutputParser(pydantic_object=Actor)
 
@@ -76,10 +77,16 @@ def tocsv(df):
 
 Topic_description = st.text_input('Enter Topic')
 Level = st.selectbox("Choose the Level",("Easy","Medium","Hard"))
+if(mod=='OpenAI'):
+    numbers_list = [i for i in range(1, 26)]
+    NoOfQue = st.selectbox("choose No of questions",numbers_list)
+if(mod=='Cohere'):
+    numbers_list = [i for i in range(1, 6)]
+    NoOfQue = st.selectbox("choose No of questions",numbers_list)    
 
 if (st.button('Submit')):
     st.write("Loading Questions...")
-    out = quesAns(Topic_description, Level)
+    out = quesAns(Topic_description, Level,NoOfQue)
     # st.write("question")
     ques = []
     optionA = []
